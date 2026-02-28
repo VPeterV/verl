@@ -1,0 +1,68 @@
+hydra:
+  searchpath:
+    - file://verl/trainer/config
+
+defaults:
+  - ppo_trainer
+  - _self_
+
+algorithm:
+  adv_estimator: trloo
+  gamma: 1.0
+  lam: 1.0
+  norm_adv_by_std_in_grpo: true
+  batch_std: false
+  use_multi_prompt_mvu: false
+  adv_by_last_turn: true
+  use_final_reward: true
+  reward_shaping: false
+  unbiased_shaping: true
+  turn_level_loss:
+    enable: true
+    max_turns: ${actor_rollout_ref.rollout.multi_turn.max_user_turns}
+    estimators: [trloo, erloo, erloo_norm, grpo, turn_independent_grpo, reinforce]
+    epsilon: 1.0e-6
+
+reward:
+  num_workers: 8
+  custom_reward_function:
+    path: recipe/drkernel/reward/kernel_reward_fn.py
+    name: compute_kernel_reward
+    reward_kwargs: {}
+  reward_manager:
+    source: importlib
+    name: DrKernelRewardManager
+    module:
+      path: recipe/drkernel/reward/kernel_reward_manager.py
+      name: kernel_reward_manager
+  kernel:
+    server_url: null
+    reward_func_name: calculate_reward_weighted
+    is_valid: false
+    print_status: true
+    task_timeout: null
+    task_timeout_in_client: null
+    num_perf_trials: null
+    num_correct_trials: null
+    enable_profiling: null
+    verbose_errors: null
+    detect_decoy_kernel: null
+    reference_backend: null
+    speedup_eps: 0.01
+    speedup_reward_upper_bound: 3.0
+    speedup_reward_lower_bound: 0.0
+    coverage_rs: null
+    coverage_rs_threshold: 0.3
+    coverage_rs_factor: 0.1
+    coverage_rs_key: time_coverage
+    speedup_threshold: null
+    reward_policy:
+      penalties:
+        penalty_score: 0.0
+
+actor_rollout_ref:
+  rollout:
+    calculate_log_probs: true
+    multi_turn:
+      enable: true
+      max_user_turns: 3
